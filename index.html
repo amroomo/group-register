@@ -14,8 +14,8 @@
     <main class="wrap">
       <header class="page-header">
         <p class="eyebrow">تسجيل الطلاب</p>
-        <h1>اختر مجموعة المساء</h1>
-        <p class="lead">أدخل اسمك ورقم هاتفك، ثم اختر يوماً واحداً. كل مجموعة عند الساعة ٨:٠٠ مساءً، وفيها ٣٠ مقعداً.</p>
+        <h1>اختر مجموعتي المساء</h1>
+        <p class="lead">أدخل اسمك ورقم هاتفك، ثم اختر يومين مختلفين. كل مجموعة عند الساعة ٨:٠٠ مساءً، وفيها ٣٠ مقعداً.</p>
       </header>
 
       <section id="step-details" class="card">
@@ -30,26 +30,28 @@
             <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required>
           </label>
           <p id="details-error" class="message error" hidden></p>
-          <button type="submit">متابعة لاختيار المجموعة</button>
+          <button type="submit">متابعة لاختيار المجموعتين</button>
         </form>
       </section>
 
       <section id="step-groups" class="card" hidden>
-        <h2>المجموعات المتاحة</h2>
+        <h2>اختر مجموعتين</h2>
         <div class="summary">
           <p><span>الاسم</span> <strong id="summary-name"></strong></p>
           <p><span>الهاتف</span> <strong id="summary-phone"></strong></p>
         </div>
         <button type="button" id="back-button" class="text-button">تعديل البيانات</button>
         <p id="seats-status" class="hint">جارٍ تحميل المقاعد...</p>
+        <p id="selection-count" class="hint">تم اختيار ٠ من ٢</p>
         <div id="group-list" class="groups"></div>
         <p id="group-error" class="message error" hidden></p>
+        <button type="button" id="confirm-groups" disabled>تأكيد المجموعتين</button>
       </section>
 
       <section id="step-done" class="card done" hidden>
         <p class="eyebrow">تم بنجاح</p>
         <h2>تم تسجيلك</h2>
-        <p class="lead">احتفظ بهذه البيانات. مقعدك محفوظ في المجموعة التي اخترتها.</p>
+        <p class="lead">احتفظ بهذه البيانات. مقعداك محفوظان في المجموعتين اللتين اخترتهما.</p>
         <dl class="confirm">
           <div>
             <dt>الاسم</dt>
@@ -60,8 +62,12 @@
             <dd id="done-phone"></dd>
           </div>
           <div>
-            <dt>المجموعة</dt>
+            <dt>المجموعة الأولى</dt>
             <dd id="done-group"></dd>
+          </div>
+          <div>
+            <dt>المجموعة الثانية</dt>
+            <dd id="done-group-2"></dd>
           </div>
           <div>
             <dt>الوقت</dt>

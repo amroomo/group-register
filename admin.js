@@ -64,13 +64,14 @@ form.addEventListener("submit", async (event) => {
 });
 
 downloadButton.addEventListener("click", () => {
-  const header = ["الاسم", "الهاتف", "المجموعة", "وقت التسجيل"];
+  const header = ["الاسم", "الهاتف", "المجموعة الأولى", "المجموعة الثانية", "وقت التسجيل"];
   const lines = [
     header,
     ...currentRows.map((row) => [
       row.full_name,
       row.phone,
-      GROUPS[row.group_day] || row.group_day,
+      groupName(row.group_day),
+      groupName(row.group_day_2),
       formatTime(row.created_at),
     ]),
   ];
@@ -94,7 +95,8 @@ function renderRows(rows) {
     for (const value of [
       row.full_name,
       row.phone,
-      GROUPS[row.group_day] || row.group_day,
+      groupName(row.group_day),
+      groupName(row.group_day_2),
       formatTime(row.created_at),
     ]) {
       const td = document.createElement("td");
@@ -103,6 +105,10 @@ function renderRows(rows) {
     }
     resultsBody.appendChild(tr);
   }
+}
+
+function groupName(day) {
+  return GROUPS[day] || "—";
 }
 
 function formatTime(value) {

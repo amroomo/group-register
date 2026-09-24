@@ -1,55 +1,24 @@
--- Student group registration
---
--- 1. In the Supabase SQL editor, replace CHANGE_ME with your admin password.
--- 2. Run this script.
--- 3. Do not save that password into the copy of this file that you push to GitHub.
---
--- To change the password later, run only this line in the SQL editor:
---   update private.secrets set admin_password = 'your-new-password' where id = 1;
+-- Run this once in the Supabase SQL editor.
+-- It lets each student register for exactly two different groups.
+-- Do not change the admin password here.
 
-create schema if not exists private;
+alter table public.registrations
+  add column if not exists group_day_2 text;
 
-revoke all on schema private from public;
-revoke all on schema private from anon, authenticated;
+alter table public.registrations
+  drop constraint if exists registrations_two_groups_distinct;
 
-create table if not exists private.secrets (
-  id int primary key check (id = 1),
-  admin_password text not null
-);
-
-insert into private.secrets (id, admin_password)
-values (1, 'CHANGE_ME')
-on conflict (id) do nothing;
-
-alter table private.secrets enable row level security;
-
-revoke all on table private.secrets from public, anon, authenticated;
-
-create table if not exists public.registrations (
-  id uuid primary key default gen_random_uuid(),
-  full_name text not null check (char_length(btrim(full_name)) between 5 and 120),
-  phone text not null check (char_length(phone) between 8 and 20),
-  phone_key text generated always as (regexp_replace(phone, '[^0-9]', '', 'g')) stored,
-  group_day text not null,
-  group_day_2 text not null,
-  constraint registrations_group_days_check check (
-    group_day in (
-      'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
+alter table public.registrations
+  add constraint registrations_two_groups_distinct
+  check (
+    group_day_2 is null
+    or (
+      group_day_2 in (
+        'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
+      )
+      and group_day_2 <> group_day
     )
-    and group_day_2 in (
-      'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
-    )
-    and group_day <> group_day_2
-  ),
-  created_at timestamptz not null default now(),
-  constraint registrations_phone_key_unique unique (phone_key),
-  constraint registrations_phone_key_len check (char_length(phone_key) between 8 and 15)
-);
-
-alter table public.registrations enable row level security;
-
-revoke all on table public.registrations from public, anon, authenticated;
-
+  );
 create or replace function public.seat_counts()
 returns table (group_day text, taken integer)
 language sql
@@ -226,3 +195,4 @@ revoke all on function public.list_registrations(text) from public;
 grant execute on function public.seat_counts() to anon, authenticated;
 grant execute on function public.register_student(text, text, text, text) to anon, authenticated;
 grant execute on function public.list_registrations(text) to anon, authenticated;
+

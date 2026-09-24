@@ -18,8 +18,10 @@ const MESSAGES = {
   name: "يرجى إدخال الاسم الكامل (٥ أحرف على الأقل).",
   phone: "يرجى إدخال رقم هاتف صحيح.",
   duplicate: "هذا الرقم مسجّل مسبقاً.",
-  full: "هذه المجموعة اكتملت. اختر مجموعة أخرى.",
-  group: "يرجى اختيار مجموعة.",
+  full: "إحدى المجموعتين اكتملت. اختر يومين آخرين.",
+  group: "يرجى اختيار مجموعتين مختلفتين.",
+  same: "اختر يومين مختلفين.",
+  count: "يمكنك اختيار مجموعتين فقط. أزل اختيار يوم إذا أردت تغييره.",
   config: "لم يتم ربط قاعدة البيانات بعد. أضف بيانات Supabase في ملف config.js.",
   network: "تعذر الاتصال. تحقق من الإنترنت ثم حاول مرة أخرى.",
 };
@@ -35,8 +37,13 @@ const seatsStatus = document.querySelector("#seats-status");
 const nameInput = document.querySelector("#full-name");
 const phoneInput = document.querySelector("#phone");
 
+const confirmButton = document.querySelector("#confirm-groups");
+const selectionCount = document.querySelector("#selection-count");
+
 let student = null;
 let saving = false;
+let selected = [];
+let lastCounts = [];
 
 detailsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -65,13 +72,17 @@ detailsForm.addEventListener("submit", async (event) => {
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
+  selected = [];
   groupsStep.hidden = true;
   detailsStep.hidden = false;
   hide(groupError);
 });
 
+confirmButton.addEventListener("click", confirmGroups);
+
 document.querySelector("#again-button").addEventListener("click", () => {
   student = null;
+  selected = [];
   detailsForm.reset();
   doneStep.hidden = true;
   detailsStep.hidden = false;
@@ -105,7 +116,8 @@ async function loadSeats() {
   }
 
   seatsStatus.hidden = true;
-  renderGroups(data || []);
+  lastCounts = data || [];
+  renderGroups(lastCounts);
 }
 
 function renderGroups(counts) {
@@ -121,10 +133,12 @@ function renderGroups(counts) {
     const taken = takenByDay[group.id];
     const remaining = Math.max(CAPACITY - taken, 0);
     const full = remaining === 0;
+    const chosen = selected.includes(group.id);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = full ? "group full" : "group";
-    button.disabled = full || saving;
+    button.className = `group${full ? " full" : ""}${chosen ? " selected" : ""}`;
+    button.disabled = (full && !chosen) || saving;
+    button.setAttribute("aria-pressed", chosen ? "true" : "false");
     button.innerHTML = `
       <span>
         <strong>${group.name}</strong>
@@ -132,13 +146,37 @@ function renderGroups(counts) {
       </span>
       <span class="seats">${full ? "اكتملت" : `${formatNumber(remaining)} / ${formatNumber(CAPACITY)}`}</span>
     `;
-    button.addEventListener("click", () => chooseGroup(group, button));
+    button.addEventListener("click", () => toggleGroup(group.id));
     groupList.appendChild(button);
   }
+
+  selectionCount.textContent = `تم اختيار ${formatNumber(selected.length)} من ${formatNumber(2)}`;
+  confirmButton.disabled = selected.length !== 2 || saving;
 }
 
-async function chooseGroup(group, button) {
-  if (!student || saving) {
+function toggleGroup(groupId) {
+  if (saving) {
+    return;
+  }
+
+  const index = selected.indexOf(groupId);
+  if (index >= 0) {
+    selected.splice(index, 1);
+    hide(groupError);
+  } else if (selected.length >= 2) {
+    show(groupError, MESSAGES.count);
+    return;
+  } else {
+    selected.push(groupId);
+    hide(groupError);
+  }
+
+  renderGroups(lastCounts);
+}
+
+async function confirmGroups() {
+  if (!student || saving || selected.length !== 2) {
+    show(groupError, MESSAGES.group);
     return;
   }
 
@@ -150,22 +188,21 @@ async function chooseGroup(group, button) {
 
   saving = true;
   hide(groupError);
-  button.disabled = true;
-  const seats = button.querySelector(".seats");
-  const previousSeats = seats.textContent;
-  seats.textContent = "جارٍ التسجيل...";
+  confirmButton.disabled = true;
+  confirmButton.textContent = "جارٍ التسجيل...";
 
   const { data, error } = await supabase.rpc("register_student", {
     p_full_name: student.fullName,
     p_phone: student.phone,
-    p_group_day: group.id,
+    p_group_day: selected[0],
+    p_group_day_2: selected[1],
   });
 
   saving = false;
+  confirmButton.textContent = "تأكيد المجموعتين";
 
   if (error || !data) {
-    seats.textContent = previousSeats;
-    button.disabled = false;
+    confirmButton.disabled = false;
     show(groupError, MESSAGES.network);
     return;
   }
@@ -176,9 +213,12 @@ async function chooseGroup(group, button) {
     return;
   }
 
+  const first = GROUPS.find((group) => group.id === selected[0]);
+  const second = GROUPS.find((group) => group.id === selected[1]);
   document.querySelector("#done-name").textContent = student.fullName;
   document.querySelector("#done-phone").textContent = student.phone;
-  document.querySelector("#done-group").textContent = `${group.name} — ${SESSION_TIME}`;
+  document.querySelector("#done-group").textContent = `${first.name} — ${SESSION_TIME}`;
+  document.querySelector("#done-group-2").textContent = `${second.name} — ${SESSION_TIME}`;
   groupsStep.hidden = true;
   doneStep.hidden = false;
 }
