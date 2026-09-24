@@ -1,84 +1,5 @@
--- Student group registration
---
--- 1. In the Supabase SQL editor, replace CHANGE_ME with your admin password.
--- 2. Run this script.
--- 3. Do not save that password into the copy of this file that you push to GitHub.
---
--- To change the password later, run only this line in the SQL editor:
---   update private.secrets set admin_password = 'your-new-password' where id = 1;
-
-create schema if not exists private;
-
-revoke all on schema private from public;
-revoke all on schema private from anon, authenticated;
-
-create table if not exists private.secrets (
-  id int primary key check (id = 1),
-  admin_password text not null
-);
-
-insert into private.secrets (id, admin_password)
-values (1, 'CHANGE_ME')
-on conflict (id) do nothing;
-
-alter table private.secrets enable row level security;
-
-revoke all on table private.secrets from public, anon, authenticated;
-
-create table if not exists public.registrations (
-  id uuid primary key default gen_random_uuid(),
-  full_name text not null check (char_length(btrim(full_name)) between 5 and 120),
-  phone text not null check (char_length(phone) between 8 and 20),
-  phone_key text generated always as (regexp_replace(phone, '[^0-9]', '', 'g')) stored,
-  group_day text not null,
-  group_day_2 text not null,
-  constraint registrations_group_days_check check (
-    group_day in (
-      'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
-    )
-    and group_day_2 in (
-      'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
-    )
-    and group_day <> group_day_2
-  ),
-  created_at timestamptz not null default now(),
-  constraint registrations_phone_key_unique unique (phone_key),
-  constraint registrations_phone_key_len check (char_length(phone_key) between 8 and 15)
-);
-
-alter table public.registrations enable row level security;
-
-revoke all on table public.registrations from public, anon, authenticated;
-
-create or replace function public.seat_counts()
-returns table (group_day text, taken integer)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select days.group_day, coalesce(counts.taken, 0)::integer
-  from (
-    values
-      ('sunday'),
-      ('monday'),
-      ('tuesday'),
-      ('wednesday'),
-      ('thursday'),
-      ('friday'),
-      ('saturday')
-  ) as days(group_day)
-  left join (
-    select chosen.group_day, count(*)::integer as taken
-    from (
-      select group_day from public.registrations
-      union all
-      select group_day_2 from public.registrations
-    ) as chosen
-    group by chosen.group_day
-  ) as counts on counts.group_day = days.group_day;
-$$;
-
+-- Run this once in the Supabase SQL editor.
+-- Same Saudi mobile numbers match, and a registered student can change groups.
 create or replace function public.canonical_phone(p_phone text)
 returns text
 language plpgsql
@@ -309,3 +230,8 @@ grant execute on function public.seat_counts() to anon, authenticated;
 grant execute on function public.lookup_student(text) to anon, authenticated;
 grant execute on function public.register_student(text, text, text, text) to anon, authenticated;
 grant execute on function public.list_registrations(text) to anon, authenticated;
+
+update public.registrations
+set phone = public.canonical_phone(phone)
+where phone is distinct from public.canonical_phone(phone);
+

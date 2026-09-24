@@ -17,7 +17,7 @@ const GROUPS = [
 const MESSAGES = {
   name: "يرجى إدخال الاسم الكامل (٥ أحرف على الأقل).",
   phone: "يرجى إدخال رقم هاتف صحيح.",
-  duplicate: "هذا الرقم مسجّل مسبقاً.",
+  duplicate: "هذا الرقم مسجّل مسبقاً. اختر يومين جديدين إذا أردت تغيير المجموعتين.",
   full: "إحدى المجموعتين اكتملت. اختر يومين آخرين.",
   group: "يرجى اختيار مجموعتين مختلفتين.",
   same: "اختر يومين مختلفين.",
@@ -39,11 +39,13 @@ const phoneInput = document.querySelector("#phone");
 
 const confirmButton = document.querySelector("#confirm-groups");
 const selectionCount = document.querySelector("#selection-count");
+const alreadyNote = document.querySelector("#already-note");
 
 let student = null;
 let saving = false;
 let selected = [];
 let lastCounts = [];
+let existingGroups = [];
 
 detailsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -51,28 +53,33 @@ detailsForm.addEventListener("submit", async (event) => {
 
   const fullName = nameInput.value.trim();
   const phone = phoneInput.value.trim();
-  const phoneDigits = phone.replace(/\D/g, "");
 
   if (fullName.length < 5) {
     show(detailsError, MESSAGES.name);
     return;
   }
 
-  if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+  if (!/^9665\d{8}$/.test(canonicalPhone(phone))) {
     show(detailsError, MESSAGES.phone);
     return;
   }
 
   student = { fullName, phone };
+  existingGroups = [];
+  selected = [];
+  hide(alreadyNote);
   document.querySelector("#summary-name").textContent = fullName;
   document.querySelector("#summary-phone").textContent = phone;
   detailsStep.hidden = true;
   groupsStep.hidden = false;
   await loadSeats();
+  await loadExistingRegistration();
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
   selected = [];
+  existingGroups = [];
+  hide(alreadyNote);
   groupsStep.hidden = true;
   detailsStep.hidden = false;
   hide(groupError);
@@ -83,6 +90,8 @@ confirmButton.addEventListener("click", confirmGroups);
 document.querySelector("#again-button").addEventListener("click", () => {
   student = null;
   selected = [];
+  existingGroups = [];
+  hide(alreadyNote);
   detailsForm.reset();
   doneStep.hidden = true;
   detailsStep.hidden = false;
@@ -96,7 +105,6 @@ function client() {
 }
 
 async function loadSeats() {
-  hide(groupError);
   seatsStatus.hidden = false;
   seatsStatus.textContent = "جارٍ تحميل المقاعد...";
   groupList.replaceChildren();
@@ -164,8 +172,9 @@ function toggleGroup(groupId) {
     selected.splice(index, 1);
     hide(groupError);
   } else if (selected.length >= 2) {
-    show(groupError, MESSAGES.count);
-    return;
+    selected.shift();
+    selected.push(groupId);
+    hide(groupError);
   } else {
     selected.push(groupId);
     hide(groupError);
@@ -208,19 +217,73 @@ async function confirmGroups() {
   }
 
   if (!data.ok) {
-    show(groupError, MESSAGES[data.error] || MESSAGES.network);
+    if (data.error === "duplicate") {
+      show(groupError, alreadyText(data.group_day, data.group_day_2));
+    } else {
+      show(groupError, MESSAGES[data.error] || MESSAGES.network);
+    }
     await loadSeats();
     return;
   }
 
   const first = GROUPS.find((group) => group.id === selected[0]);
   const second = GROUPS.find((group) => group.id === selected[1]);
+  document.querySelector("#done-title").textContent = data.updated ? "تم تحديث مجموعاتك" : "تم تسجيلك";
+  document.querySelector("#done-lead").textContent = data.updated
+    ? "تم تغيير المجموعتين السابقتين إلى الاختيار الجديد."
+    : "احتفظ بهذه البيانات. مقعداك محفوظان في المجموعتين اللتين اخترتهما.";
   document.querySelector("#done-name").textContent = student.fullName;
   document.querySelector("#done-phone").textContent = student.phone;
   document.querySelector("#done-group").textContent = `${first.name} — ${SESSION_TIME}`;
   document.querySelector("#done-group-2").textContent = `${second.name} — ${SESSION_TIME}`;
   groupsStep.hidden = true;
   doneStep.hidden = false;
+}
+
+async function loadExistingRegistration() {
+  const supabase = client();
+  if (!supabase || !student) {
+    return;
+  }
+
+  const { data, error } = await supabase.rpc("lookup_student", {
+    p_phone: student.phone,
+  });
+
+  if (error || !data || !data.found) {
+    confirmButton.textContent = "تأكيد المجموعتين";
+    return;
+  }
+
+  existingGroups = [data.group_day, data.group_day_2].filter(Boolean);
+  selected = [...existingGroups];
+  show(alreadyNote, alreadyText(data.group_day, data.group_day_2));
+  confirmButton.textContent = "تحديث المجموعتين";
+  renderGroups(lastCounts);
+}
+
+function alreadyText(firstDay, secondDay) {
+  const first = GROUPS.find((group) => group.id === firstDay);
+  const second = GROUPS.find((group) => group.id === secondDay);
+  const names = [first?.name, second?.name].filter(Boolean).join(" و");
+  if (!names) {
+    return MESSAGES.duplicate;
+  }
+  return `هذا الرقم مسجّل مسبقاً في ${names}. اختر يومين جديدين إذا أردت تغيير المجموعتين.`;
+}
+
+function canonicalPhone(raw) {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2);
+  }
+  if (digits.startsWith("966")) {
+    return digits;
+  }
+  if (digits.startsWith("0")) {
+    return `966${digits.slice(1)}`;
+  }
+  return `966${digits}`;
 }
 
 function formatNumber(value) {
