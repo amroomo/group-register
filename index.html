@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f6e6b">
+    <title>تسجيل المجموعات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="page-header">
+        <p class="eyebrow">تسجيل الطلاب</p>
+        <h1>اختر مجموعة المساء</h1>
+        <p class="lead">أدخل اسمك ورقم هاتفك، ثم اختر يوماً واحداً. كل مجموعة عند الساعة ٨:٠٠ مساءً، وفيها ٣٠ مقعداً.</p>
+      </header>
+
+      <section id="step-details" class="card">
+        <h2>بياناتك</h2>
+        <form id="details-form">
+          <label>
+            الاسم الكامل
+            <input id="full-name" name="fullName" type="text" autocomplete="name" maxlength="120" required>
+          </label>
+          <label>
+            رقم الهاتف
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required>
+          </label>
+          <p id="details-error" class="message error" hidden></p>
+          <button type="submit">متابعة لاختيار المجموعة</button>
+        </form>
+      </section>
+
+      <section id="step-groups" class="card" hidden>
+        <h2>المجموعات المتاحة</h2>
+        <div class="summary">
+          <p><span>الاسم</span> <strong id="summary-name"></strong></p>
+          <p><span>الهاتف</span> <strong id="summary-phone"></strong></p>
+        </div>
+        <button type="button" id="back-button" class="text-button">تعديل البيانات</button>
+        <p id="seats-status" class="hint">جارٍ تحميل المقاعد...</p>
+        <div id="group-list" class="groups"></div>
+        <p id="group-error" class="message error" hidden></p>
+      </section>
+
+      <section id="step-done" class="card done" hidden>
+        <p class="eyebrow">تم بنجاح</p>
+        <h2>تم تسجيلك</h2>
+        <p class="lead">احتفظ بهذه البيانات. مقعدك محفوظ في المجموعة التي اخترتها.</p>
+        <dl class="confirm">
+          <div>
+            <dt>الاسم</dt>
+            <dd id="done-name"></dd>
+          </div>
+          <div>
+            <dt>الهاتف</dt>
+            <dd id="done-phone"></dd>
+          </div>
+          <div>
+            <dt>المجموعة</dt>
+            <dd id="done-group"></dd>
+          </div>
+          <div>
+            <dt>الوقت</dt>
+            <dd>٨:٠٠ مساءً</dd>
+          </div>
+        </dl>
+        <button type="button" id="again-button">تسجيل طالب آخر</button>
+      </section>
+
+      <footer class="page-footer">
+        <a href="admin.html">لوحة الإدارة</a>
+      </footer>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
