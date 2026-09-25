@@ -12,13 +12,20 @@ begin
   if digits ~ '^00' then
     digits := substring(digits from 3);
   end if;
-  if digits ~ '^966' then
+
+  if digits ~ '^9665[0-9]{8}$' or digits ~ '^201[0125][0-9]{8}$' then
     return digits;
-  elsif digits ~ '^0' then
+  elsif digits ~ '^05[0-9]{8}$' then
     return '966' || substring(digits from 2);
-  else
+  elsif digits ~ '^01[0125][0-9]{8}$' then
+    return '20' || substring(digits from 2);
+  elsif digits ~ '^5[0-9]{8}$' then
     return '966' || digits;
+  elsif digits ~ '^1[0125][0-9]{8}$' then
+    return '20' || digits;
   end if;
+
+  return digits;
 end;
 $$;
 
@@ -62,7 +69,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'name');
   end if;
 
-  if phone_digits !~ '^966[0-9]{9,12}$' then
+  if phone_digits !~ '^(9665|201[0125])[0-9]{8}$' then
     return jsonb_build_object('ok', false, 'error', 'phone');
   end if;
 
@@ -197,7 +204,7 @@ declare
 begin
   phone_digits := public.canonical_phone(p_phone);
 
-  if phone_digits !~ '^966[0-9]{9,12}$' then
+  if phone_digits !~ '^(9665|201[0125])[0-9]{8}$' then
     return jsonb_build_object('ok', false, 'error', 'phone');
   end if;
 

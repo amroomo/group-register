@@ -16,7 +16,7 @@ const GROUPS = [
 
 const MESSAGES = {
   name: "يرجى إدخال الاسم الكامل (٥ أحرف على الأقل).",
-  phone: "يرجى إدخال رقم هاتف صحيح.",
+  phone: "يرجى إدخال رقم سعودي أو مصري صحيح.",
   duplicate: "هذا الرقم مسجّل مسبقاً. اختر يومين جديدين إذا أردت تغيير المجموعتين.",
   full: "إحدى المجموعتين اكتملت. اختر يومين آخرين.",
   group: "يرجى اختيار مجموعتين مختلفتين.",
@@ -59,7 +59,7 @@ detailsForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!/^966\d{9,12}$/.test(canonicalPhone(phone))) {
+  if (!/^(9665|201[0125])\d{8}$/.test(canonicalPhone(phone))) {
     show(detailsError, MESSAGES.phone);
     return;
   }
@@ -277,13 +277,22 @@ function canonicalPhone(raw) {
   if (digits.startsWith("00")) {
     digits = digits.slice(2);
   }
-  if (digits.startsWith("966")) {
+  if (/^(9665|201[0125])\d{8}$/.test(digits)) {
     return digits;
   }
-  if (digits.startsWith("0")) {
+  if (/^05\d{8}$/.test(digits)) {
     return `966${digits.slice(1)}`;
   }
-  return `966${digits}`;
+  if (/^01[0125]\d{8}$/.test(digits)) {
+    return `20${digits.slice(1)}`;
+  }
+  if (/^5\d{8}$/.test(digits)) {
+    return `966${digits}`;
+  }
+  if (/^1[0125]\d{8}$/.test(digits)) {
+    return `20${digits}`;
+  }
+  return digits;
 }
 
 function formatNumber(value) {
