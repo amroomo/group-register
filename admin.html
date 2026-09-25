@@ -31,6 +31,28 @@
 
       <section id="results" class="card" hidden>
         <div class="results-bar">
+          <h2>عدد الطلاب لكل يوم</h2>
+          <button type="button" id="download-days" class="secondary">تنزيل تقرير الأيام</button>
+        </div>
+        <p class="hint">اليوم يُحسب سواء كان الاختيار الأول أو الثاني. الترتيب من الأكبر إلى الأصغر.</p>
+        <div class="table-wrap">
+          <table class="day-table">
+            <thead>
+              <tr>
+                <th>اليوم</th>
+                <th>العدد</th>
+              </tr>
+            </thead>
+            <tbody id="day-body"></tbody>
+            <tfoot>
+              <tr>
+                <th>المجموع</th>
+                <td id="day-total"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="results-bar student-bar">
           <p id="results-count" class="hint"></p>
           <button type="button" id="download-button" class="secondary">تنزيل CSV</button>
         </div>

@@ -233,8 +233,19 @@ button.text-button {
 }
 
 .results-bar .hint,
-.results-bar button {
+.results-bar button,
+.results-bar h2 {
   margin: 0;
+}
+
+.student-bar {
+  margin-top: 1.4rem;
+}
+
+.day-table tfoot th,
+.day-table tfoot td {
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .table-wrap {

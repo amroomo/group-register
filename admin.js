@@ -25,6 +25,9 @@ const resultsBody = document.querySelector("#results-body");
 const resultsCount = document.querySelector("#results-count");
 const emptyState = document.querySelector("#empty-state");
 const downloadButton = document.querySelector("#download-button");
+const downloadDaysButton = document.querySelector("#download-days");
+const dayBody = document.querySelector("#day-body");
+const dayTotal = document.querySelector("#day-total");
 
 let currentRows = [];
 
@@ -75,13 +78,18 @@ downloadButton.addEventListener("click", () => {
       formatTime(row.created_at),
     ]),
   ];
-  const csv = `\uFEFF${lines.map((line) => line.map(csvCell).join(",")).join("\n")}`;
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "registrations.csv";
-  link.click();
-  URL.revokeObjectURL(link.href);
+  downloadCsv("registrations.csv", lines);
+});
+
+downloadDaysButton.addEventListener("click", () => {
+  const counts = dayCounts(currentRows);
+  const total = counts.reduce((sum, day) => sum + day.count, 0);
+  const lines = [
+    ["اليوم", "العدد"],
+    ...counts.map((day) => [day.name, String(day.count)]),
+    ["المجموع", String(total)],
+  ];
+  downloadCsv("day-counts.csv", lines);
 });
 
 function renderRows(rows) {
@@ -89,6 +97,7 @@ function renderRows(rows) {
   resultsCount.textContent = `${rows.length.toLocaleString("ar-EG")} طالب`;
   emptyState.hidden = rows.length > 0;
   resultsBody.replaceChildren();
+  renderDayCounts(rows);
 
   for (const row of rows) {
     const tr = document.createElement("tr");
@@ -105,6 +114,55 @@ function renderRows(rows) {
     }
     resultsBody.appendChild(tr);
   }
+}
+
+function renderDayCounts(rows) {
+  const counts = dayCounts(rows);
+  const total = counts.reduce((sum, day) => sum + day.count, 0);
+  dayBody.replaceChildren();
+
+  for (const day of counts) {
+    const tr = document.createElement("tr");
+    for (const value of [day.name, formatNumber(day.count)]) {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.appendChild(td);
+    }
+    dayBody.appendChild(tr);
+  }
+
+  dayTotal.textContent = formatNumber(total);
+}
+
+function dayCounts(rows) {
+  const counts = Object.fromEntries(Object.keys(GROUPS).map((id) => [id, 0]));
+  for (const row of rows) {
+    if (row.group_day in counts) {
+      counts[row.group_day] += 1;
+    }
+    if (row.group_day_2 in counts) {
+      counts[row.group_day_2] += 1;
+    }
+  }
+
+  const order = Object.keys(GROUPS);
+  return order
+    .map((id) => ({ id, name: GROUPS[id], count: counts[id] }))
+    .sort((a, b) => b.count - a.count || order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+function formatNumber(value) {
+  return Number(value).toLocaleString("ar-EG");
+}
+
+function downloadCsv(filename, lines) {
+  const csv = `\uFEFF${lines.map((line) => line.map(csvCell).join(",")).join("\n")}`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function groupName(day) {
