@@ -243,22 +243,27 @@ button.text-button {
 }
 
 .admin-wrap {
-  width: min(100% - 2rem, 46rem);
+  width: min(100% - 2rem, 72rem);
 }
 
 #results > .results-bar h2 {
-  font-size: 2rem;
+  font-size: 3rem;
+}
+
+#results > .hint {
+  font-size: 1.35rem;
 }
 
 table.day-table {
-  font-size: 2.6rem;
-  line-height: 1.25;
+  font-size: 4.25rem;
+  line-height: 1.2;
 }
 
 table.day-table th,
 table.day-table td {
-  padding: 0.85rem 0.2rem;
-  font-size: 2.6rem;
+  padding: 0.55rem 0.15rem;
+  font-size: 4.25rem;
+  font-weight: 700;
 }
 
 .day-table tfoot th,
