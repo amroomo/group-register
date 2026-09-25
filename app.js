@@ -59,7 +59,7 @@ detailsForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!/^9665\d{8}$/.test(canonicalPhone(phone))) {
+  if (!/^966\d{9,12}$/.test(canonicalPhone(phone))) {
     show(detailsError, MESSAGES.phone);
     return;
   }

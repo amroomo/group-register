@@ -62,7 +62,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'name');
   end if;
 
-  if phone_digits !~ '^9665[0-9]{8}$' then
+  if phone_digits !~ '^966[0-9]{9,12}$' then
     return jsonb_build_object('ok', false, 'error', 'phone');
   end if;
 
@@ -197,7 +197,7 @@ declare
 begin
   phone_digits := public.canonical_phone(p_phone);
 
-  if phone_digits !~ '^9665[0-9]{8}$' then
+  if phone_digits !~ '^966[0-9]{9,12}$' then
     return jsonb_build_object('ok', false, 'error', 'phone');
   end if;
 
