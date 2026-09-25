@@ -242,6 +242,15 @@ button.text-button {
   margin-top: 1.4rem;
 }
 
+.day-table {
+  font-size: 1.35rem;
+}
+
+.day-table th,
+.day-table td {
+  padding: 0.85rem 0.4rem;
+}
+
 .day-table tfoot th,
 .day-table tfoot td {
   font-weight: 700;
