@@ -26,8 +26,10 @@ const resultsCount = document.querySelector("#results-count");
 const emptyState = document.querySelector("#empty-state");
 const downloadButton = document.querySelector("#download-button");
 const downloadDaysButton = document.querySelector("#download-days");
+const downloadNamesButton = document.querySelector("#download-names");
 const dayBody = document.querySelector("#day-body");
 const dayTotal = document.querySelector("#day-total");
+const dayNames = document.querySelector("#day-names");
 
 let currentRows = [];
 
@@ -92,12 +94,23 @@ downloadDaysButton.addEventListener("click", () => {
   downloadCsv("day-counts.csv", lines);
 });
 
+downloadNamesButton.addEventListener("click", () => {
+  const lines = [["اليوم", "الاسم", "الهاتف"]];
+  for (const day of studentsByDay(currentRows)) {
+    for (const student of day.students) {
+      lines.push([day.name, student.full_name, student.phone]);
+    }
+  }
+  downloadCsv("day-names.csv", lines);
+});
+
 function renderRows(rows) {
   results.hidden = false;
   resultsCount.textContent = `${rows.length.toLocaleString("ar-EG")} طالب`;
   emptyState.hidden = rows.length > 0;
   resultsBody.replaceChildren();
   renderDayCounts(rows);
+  renderDayNames(rows);
 
   for (const row of rows) {
     const tr = document.createElement("tr");
@@ -132,6 +145,47 @@ function renderDayCounts(rows) {
   }
 
   dayTotal.textContent = formatNumber(total);
+}
+
+function renderDayNames(rows) {
+  dayNames.replaceChildren();
+
+  for (const day of studentsByDay(rows)) {
+    const section = document.createElement("section");
+    section.className = "day-group";
+
+    const title = document.createElement("h3");
+    title.textContent = `${day.name} (${formatNumber(day.students.length)})`;
+    section.appendChild(title);
+
+    const list = document.createElement("ol");
+    for (const student of day.students) {
+      const item = document.createElement("li");
+      item.textContent = `${student.full_name} — ${student.phone}`;
+      list.appendChild(item);
+    }
+    section.appendChild(list);
+    dayNames.appendChild(section);
+  }
+}
+
+function studentsByDay(rows) {
+  const grouped = Object.fromEntries(Object.keys(GROUPS).map((id) => [id, []]));
+  for (const row of rows) {
+    if (row.group_day in grouped) {
+      grouped[row.group_day].push(row);
+    }
+    if (row.group_day_2 in grouped) {
+      grouped[row.group_day_2].push(row);
+    }
+  }
+
+  return dayCounts(rows)
+    .filter((day) => grouped[day.id].length > 0)
+    .map((day) => ({
+      ...day,
+      students: grouped[day.id].sort((a, b) => a.full_name.localeCompare(b.full_name, "ar")),
+    }));
 }
 
 function dayCounts(rows) {

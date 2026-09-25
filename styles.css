@@ -242,6 +242,31 @@ button.text-button {
   margin-top: 1.4rem;
 }
 
+.day-group {
+  margin-top: 0.9rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--line);
+}
+
+.day-group h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.2rem;
+}
+
+.day-group ol {
+  margin: 0;
+  padding-right: 1.3rem;
+}
+
+.day-group li {
+  margin: 0.15rem 0;
+}
+
+.day-group span {
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .admin-wrap {
   width: min(100% - 2rem, 52rem);
 }
