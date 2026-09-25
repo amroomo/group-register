@@ -242,13 +242,23 @@ button.text-button {
   margin-top: 1.4rem;
 }
 
-.day-table {
-  font-size: 1.35rem;
+.admin-wrap {
+  width: min(100% - 2rem, 46rem);
 }
 
-.day-table th,
-.day-table td {
-  padding: 0.85rem 0.4rem;
+#results > .results-bar h2 {
+  font-size: 2rem;
+}
+
+table.day-table {
+  font-size: 2.6rem;
+  line-height: 1.25;
+}
+
+table.day-table th,
+table.day-table td {
+  padding: 0.85rem 0.2rem;
+  font-size: 2.6rem;
 }
 
 .day-table tfoot th,
