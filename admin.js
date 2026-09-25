@@ -1,6 +1,8 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { supabaseAnonKey, supabaseUrl } from "./config.js";
 
+const SESSION_TIME = "الساعة ٨:٠٠ مساءً";
+
 const GROUPS = {
   sunday: "الأحد",
   monday: "الإثنين",
@@ -201,7 +203,7 @@ function dayCounts(rows) {
 
   const order = Object.keys(GROUPS);
   return order
-    .map((id) => ({ id, name: GROUPS[id], count: counts[id] }))
+    .map((id) => ({ id, name: `${GROUPS[id]} ${SESSION_TIME}`, count: counts[id] }))
     .sort((a, b) => b.count - a.count || order.indexOf(a.id) - order.indexOf(b.id));
 }
 
