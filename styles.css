@@ -247,7 +247,7 @@ button.text-button {
 }
 
 #results > .results-bar h2 {
-  font-size: 1.6rem;
+  font-size: 1.45rem;
 }
 
 #results > .hint {
@@ -255,14 +255,14 @@ button.text-button {
 }
 
 table.day-table {
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   line-height: 1.35;
 }
 
 table.day-table th,
 table.day-table td {
-  padding: 0.6rem 0.2rem;
-  font-size: 1.8rem;
+  padding: 0.55rem 0.2rem;
+  font-size: 1.55rem;
   font-weight: 700;
 }
 
